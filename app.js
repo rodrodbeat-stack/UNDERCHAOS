@@ -1,49 +1,136 @@
-const toast = document.getElementById('toast');
-let toastTimer;
-function notify(message){
-  toast.textContent = message;
-  toast.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>toast.classList.remove('show'),2200);
+const feed = document.getElementById("feed");
+const preview = document.getElementById("preview");
+
+let selectedMedia = [];
+
+function addMedia(file) {
+  if (!file) return;
+
+  const url = URL.createObjectURL(file);
+  selectedMedia.push({ file, url });
+
+  let element;
+
+  if (file.type.startsWith("image/")) {
+    element = document.createElement("img");
+    element.src = url;
+  } else if (file.type.startsWith("video/")) {
+    element = document.createElement("video");
+    element.src = url;
+    element.controls = true;
+  } else if (file.type.startsWith("audio/")) {
+    element = document.createElement("audio");
+    element.src = url;
+    element.controls = true;
+  } else {
+    selectedMedia.pop();
+    URL.revokeObjectURL(url);
+    alert("Formato no compatible");
+    return;
+  }
+
+  preview.appendChild(element);
 }
-document.querySelectorAll('.like-btn').forEach(button=>{
-  button.addEventListener('click',()=>{
-    const liked = button.classList.toggle('liked');
-    const count = button.querySelector('b');
-    const raw = count.textContent;
-    count.textContent = liked ? (raw.includes('k') ? raw : String(Number(raw)+1)) : (raw.includes('k') ? raw : String(Math.max(0,Number(raw)-1)));
+
+["photoInput", "videoInput", "audioInput"].forEach(id => {
+  document.getElementById(id).addEventListener("change", event => {
+    [...event.target.files].forEach(addMedia);
+    event.target.value = "";
   });
 });
-document.querySelectorAll('.save-btn').forEach(button=>button.addEventListener('click',()=>{
-  button.classList.toggle('saved'); notify(button.classList.contains('saved')?'PUBLICACIÓN GUARDADA':'PUBLICACIÓN QUITADA DE GUARDADOS');
-}));
-document.querySelectorAll('.comment-btn,.comment-preview').forEach(el=>el.addEventListener('click',()=>notify('MÓDULO DE COMENTARIOS — PRÓXIMAMENTE')));
-document.querySelectorAll('.story').forEach(story=>story.addEventListener('click',()=>notify('HISTORIA ABIERTA · SKYNET SOCIAL')));
-document.getElementById('publishBtn').addEventListener('click',()=>{
-  const input=document.getElementById('postInput');
-  const value=input.value.trim();
-  if(!value){input.focus();notify('ESCRIBE ALGO ANTES DE PUBLICAR');return;}
-  const post=document.createElement('article');
-  post.className='post panel';
-  post.dataset.search=value.toLowerCase();
-  post.innerHTML=`<header class="post-header"><div class="avatar avatar-red">DC</div><div class="post-author"><strong>darkcode_2050 <span class="verified">✓</span></strong><small>Ahora · Chile</small></div><button class="more">•••</button></header><div class="post-copy"><strong>darkcode_2050</strong>${escapeHtml(value)}<br><span><a>#skynet</a> <a>#cyberreels</a></span></div><div class="post-actions"><button class="like-btn"><span>♥</span><b>0</b></button><button><span>◯</span><b>0</b></button><button><span>➤</span></button><button class="save-btn">♧</button></div>`;
-  document.querySelector('.feed-heading').after(post);
-  input.value=''; notify('PUBLICACIÓN TRANSMITIDA CORRECTAMENTE');
+
+document.getElementById("publish").addEventListener("click", () => {
+  const text = document.getElementById("postText").value.trim();
+
+  if (!text && !selectedMedia.length) {
+    alert("Escribe algo o selecciona contenido.");
+    return;
+  }
+
+  const article = document.createElement("article");
+  article.className = "post";
+
+  const title = document.createElement("h3");
+  title.textContent = "UnderChaos Creator · ahora";
+
+  const paragraph = document.createElement("p");
+  paragraph.textContent = text;
+
+  article.append(title, paragraph);
+
+  selectedMedia.forEach(({file, url}) => {
+    let media;
+
+    if (file.type.startsWith("image/")) {
+      media = document.createElement("img");
+      media.src = url;
+    } else if (file.type.startsWith("video/")) {
+      media = document.createElement("video");
+      media.src = url;
+      media.controls = true;
+    } else {
+      media = document.createElement("audio");
+      media.src = url;
+      media.controls = true;
+    }
+
+    media.style.maxWidth = "100%";
+    media.style.display = "block";
+    media.style.marginTop = "12px";
+    article.appendChild(media);
+  });
+
+  const actions = document.createElement("div");
+  actions.className = "actions";
+  actions.innerHTML = `
+    <button class="like">♡ Me gusta</button>
+    <button class="comment">▢ Comentar</button>
+    <button class="share">↗ Compartir</button>
+  `;
+
+  article.appendChild(actions);
+  feed.prepend(article);
+
+  document.getElementById("postText").value = "";
+  preview.innerHTML = "";
+  selectedMedia = [];
+
+  alert("Publicación creada en esta sesión.");
 });
-function escapeHtml(str){return str.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-document.getElementById('searchInput').addEventListener('input',e=>{
-  const term=e.target.value.toLowerCase().trim();
-  document.querySelectorAll('.post').forEach(post=>post.style.display=(!term||(post.dataset.search||post.innerText.toLowerCase()).includes(term))?'':'none');
+
+feed.addEventListener("click", event => {
+  const button = event.target.closest("button");
+  if (!button) return;
+
+  if (button.classList.contains("like")) {
+    button.classList.toggle("liked");
+    button.textContent = button.classList.contains("liked")
+      ? "♥ Te gusta"
+      : "♡ Me gusta";
+  }
+
+  if (button.classList.contains("comment")) {
+    const comment = prompt("Escribe tu comentario:");
+    if (comment?.trim()) alert("Comentario recibido en esta demostración.");
+  }
+
+  if (button.classList.contains("share")) {
+    navigator.clipboard?.writeText(location.href);
+    alert("Enlace copiado.");
+  }
 });
-document.getElementById('chatForm').addEventListener('submit',e=>{
-  e.preventDefault(); const input=document.getElementById('chatMessage');
-  if(!input.value.trim())return;
-  const person=document.createElement('div');person.className='chat-person';
-  person.innerHTML=`<div class="avatar avatar-red">DC</div><div><b>darkcode_2050</b><small>${escapeHtml(input.value.trim())}</small></div><time>ahora</time>`;
-  document.querySelector('.chat-input').before(person);input.value='';
+
+document.querySelectorAll("[data-filter]").forEach(link => {
+  link.addEventListener("click", event => {
+    event.preventDefault();
+
+    const filter = link.dataset.filter;
+
+    document.querySelectorAll(".post").forEach(post => {
+      post.style.display =
+        filter === "all" || post.dataset.type === filter
+          ? "block"
+          : "none";
+    });
+  });
 });
-document.querySelectorAll('.product button').forEach(button=>button.addEventListener('click',()=>notify('DROP SELECCIONADO · CATÁLOGO DEMO')));
-document.querySelectorAll('.icon-btn,.menu-link,.outline-button,.filter-button').forEach(button=>button.addEventListener('click',e=>{
-  if(button.getAttribute('href')==='#') {e.preventDefault();notify('SECCIÓN SKYNET SOCIAL');}
-}));
-document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();document.getElementById('searchInput').focus();}});
