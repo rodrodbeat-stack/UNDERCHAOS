@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UNDERCHAOS | Social Network</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="logo">UNDER<span>CHAOS</span></div>
+
+  <input id="search" placeholder="Buscar creadores...">
+
+  <div class="user">U / CREATOR</div>
+</header>
+
+<div class="layout">
+
+<aside class="sidebar">
+  <div class="profile">
+    <div class="avatar">U</div>
+    <h3>UnderChaos Creator</h3>
+    <p>@underchaos</p>
+    <div class="stats">
+      <span>1.8K<br>Seguidores</span>
+      <span>246<br>Siguiendo</span>
+    </div>
+  </div>
+
+  <nav>
+    <a href="#" data-filter="all">⌂ Inicio</a>
+    <a href="#" data-filter="video">▷ Videos</a>
+    <a href="#" data-filter="photo">▧ Fotografías</a>
+    <a href="#" data-filter="music">♫ Música</a>
+    <a href="#">◎ Comunidades</a>
+    <a href="#">✉ Mensajes</a>
+    <a href="#">◇ Guardados</a>
+    <a href="#">⚙ Configuración</a>
+  </nav>
+</aside>
+
+<main>
+
+<section class="hero">
+  <small>UNDERCHAOS NETWORK / ONLINE</small>
+  <h1>Welcome to the <span>Chaos.</span></h1>
+  <p>Creatividad sin límites. Cultura sin fronteras.</p>
+</section>
+
+<section class="composer">
+  <h3>¿Qué está pasando en tu mundo?</h3>
+
+  <textarea id="postText" placeholder="Comparte algo con la comunidad..."></textarea>
+
+  <div class="upload-actions">
+    <label>▧ FOTO
+      <input type="file" id="photoInput" accept="image/*">
+    </label>
+
+    <label>▷ VIDEO
+      <input type="file" id="videoInput" accept="video/*">
+    </label>
+
+    <label>♫ AUDIO
+      <input type="file" id="audioInput" accept="audio/*">
+    </label>
+
+    <button id="publish">PUBLICAR ↗</button>
+  </div>
+
+  <div id="preview"></div>
+</section>
+
+<div class="feed-header">
+  <h2>Community Feed</h2>
+  <span>● LIVE</span>
+</div>
+
+<div id="feed">
+
+<article class="post" data-type="photo">
+  <h3>Akira Motion ✓</h3>
+  <p>Explorando nuevas dimensiones visuales.</p>
+  <div class="demo-art">
+    <span>BEYOND THE GRID</span>
+  </div>
+  <div class="actions">
+    <button class="like">♡ Me gusta</button>
+    <button class="comment">▢ Comentar</button>
+    <button class="share">↗ Compartir</button>
+  </div>
+</article>
+
+<article class="post" data-type="music">
+  <h3>VOID Frequency ✓</h3>
+  <p>Nueva señal desde el subsuelo.</p>
+  <div class="demo-music">
+    <h2>VOID / FREQUENCY</h2>
+    <p>Industrial · Dark Synth</p>
+  </div>
+  <div class="actions">
+    <button class="like">♡ Me gusta</button>
+    <button class="comment">▢ Comentar</button>
+    <button class="share">↗ Compartir</button>
+  </div>
+</article>
+
+</div>
+
+</main>
+
+<aside class="rightbar">
+  <h3>TRENDING SIGNALS</h3>
+  <p>#DarkVisuals</p>
+  <p>#NeuralAudio</p>
+  <p>#CyberCulture</p>
+  <p>#DevSecOps</p>
+
+  <hr>
+
+  <h3>CREATORS TO FOLLOW</h3>
+  <p>Akira Motion ＋</p>
+  <p>Marco Synth ＋</p>
+  <p>Laura Quantum ＋</p>
+</aside>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
