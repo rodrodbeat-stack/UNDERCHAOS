@@ -3,397 +3,107 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#08090c">
-  <title>UNDERCHAOS | SKYNET SOCIAL</title>
+  <meta name="theme-color" content="#080a0e">
+  <title>CYBERREELS — Skynet Social</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
   <header class="topbar">
-    <a href="#inicio" class="brand">
-      <span class="brand-icon">◉</span>
-      <span>
-        UNDER<span class="red">CHAOS</span>
-        <small>SKYNET SOCIAL</small>
-      </span>
-    </a>
-
-    <div class="top-search">
-      <span aria-hidden="true">⌕</span>
-      <input type="search" id="searchInput" placeholder="Buscar..." aria-label="Buscar">
-    </div>
-
-    <nav class="top-actions" aria-label="Navegación principal">
-      <a href="#inicio" class="top-active" aria-label="Inicio">⌂</a>
-      <a href="#reels" aria-label="Reels">▣</a>
-      <a href="#mensajes" aria-label="Mensajes">➤</a>
-      <a href="#feed" aria-label="Publicaciones">♡</a>
-      <button id="notificationBtn" type="button" aria-label="Notificaciones">
-        ♧ <b>3</b>
-      </button>
-      <img src="https://i.pravatar.cc/100?img=12" alt="Perfil" class="top-avatar">
+    <a class="brand" href="#"><span class="brand-eye"><i></i></span><span><b>CYBERREELS</b><small>SKYNET SOCIAL</small></span></a>
+    <label class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Buscar publicaciones, usuarios, comunidades..."><kbd>⌘ K</kbd></label>
+    <nav class="top-actions" aria-label="Navegación rápida">
+      <button class="icon-btn active" title="Inicio">⌂</button><button class="icon-btn" title="Reels">▣</button>
+      <button class="icon-btn" title="Enviar">➤</button><button class="icon-btn" title="Guardados">♡</button>
+      <button class="icon-btn notification" title="Notificaciones">♧<em>3</em></button>
+      <button class="mini-avatar" title="Tu perfil">DC</button>
     </nav>
   </header>
 
-  <div class="app-layout">
-    <aside class="left-sidebar">
-      <section class="user-card">
-        <img src="https://i.pravatar.cc/100?img=12" alt="Usuario">
-        <div>
-          <strong>darkcode_2050</strong>
-          <small>Hacker / DevOps</small>
-          <span class="online-label">● ONLINE</span>
-        </div>
+  <main class="layout">
+    <aside class="left-column">
+      <section class="panel profile-card">
+        <div class="profile-head"><div class="avatar avatar-large avatar-red">DC</div><div><strong>darkcode_2050</strong><span>Hacker / DevOps</span><small class="online"><i></i> EN LÍNEA</small></div></div>
+        <div class="profile-stats"><div><b>248</b><span>Posts</span></div><div><b>12.8k</b><span>Seguidores</span></div><div><b>384</b><span>Siguiendo</span></div></div>
+        <button class="outline-button full">VER PERFIL <span>↗</span></button>
       </section>
-
-      <nav class="main-menu" aria-label="Menú">
-        <a href="#inicio" class="selected"><span>⌂</span> Inicio</a>
-        <a href="#explorar"><span>◎</span> Explorar</a>
-        <a href="#reels"><span>▣</span> Reels</a>
-        <a href="#mensajes"><span>➤</span> Mensajes <b>3</b></a>
-        <a href="#notificaciones"><span>♧</span> Notificaciones <b>7</b></a>
-        <a href="#crear"><span>⊞</span> Crear</a>
-        <a href="#perfil"><span>♙</span> Perfil</a>
-      </nav>
-
-      <section class="sidebar-section" id="communities">
-        <h3>COMUNIDADES</h3>
-
-        <a href="#communities" class="community">
-          <span class="community-icon">⌘</span>
-          <span><strong>DevOps</strong><small>12.4k miembros</small></span>
-        </a>
-
-        <a href="#communities" class="community">
-          <span class="community-icon">☁</span>
-          <span><strong>Cloud</strong><small>8.7k miembros</small></span>
-        </a>
-
-        <a href="#communities" class="community">
-          <span class="community-icon">◉</span>
-          <span><strong>Industrial Noise</strong><small>6.3k miembros</small></span>
-        </a>
-
-        <a href="#communities" class="community">
-          <span class="community-icon">♧</span>
-          <span><strong>Cyberpunk</strong><small>15.2k miembros</small></span>
-        </a>
-      </section>
-
-      <section class="sidebar-section trends">
-        <h3>TENDENCIAS</h3>
-        <a href="#feed">#skynet</a>
-        <a href="#feed">#cyberpunk</a>
-        <a href="#feed">#industrial</a>
-        <a href="#feed">#devops</a>
-        <a href="#feed">#future</a>
-        <a href="#feed">#ai</a>
-      </section>
-
-      <div class="skynet-banner">
-        <div class="skynet-symbol">△</div>
-        <strong>SKYNET</strong>
-        <small>BETTER. FASTER. STRONGER.</small>
-      </div>
-    </aside>
-
-    <main class="center-content" id="inicio">
-      <section class="stories-panel" id="stories" aria-label="Historias">
-        <div class="story">
-          <button class="story-ring add-story" type="button" id="addStoryBtn">
-            <img src="https://i.pravatar.cc/100?img=12" alt="Tu historia">
-            <span>+</span>
-          </button>
-          <small>Tu historia</small>
-        </div>
-
-        <div class="story">
-          <div class="story-ring"><img src="https://i.pravatar.cc/100?img=32" alt=""></div>
-          <small>tech_girl</small>
-        </div>
-
-        <div class="story">
-          <div class="story-ring"><img src="https://i.pravatar.cc/100?img=44" alt=""></div>
-          <small>cyberpunk</small>
-        </div>
-
-        <div class="story">
-          <div class="story-ring"><img src="https://i.pravatar.cc/100?img=15" alt=""></div>
-          <small>darkcode</small>
-        </div>
-
-        <div class="story">
-          <div class="story-ring"><img src="https://i.pravatar.cc/100?img=59" alt=""></div>
-          <small>ai_master</small>
-        </div>
-
-        <div class="story">
-          <div class="story-ring"><img src="https://i.pravatar.cc/100?img=68" alt=""></div>
-          <small>metalhead</small>
-        </div>
-
-        <div class="story">
-          <div class="story-ring"><img src="https://i.pravatar.cc/100?img=21" alt=""></div>
-          <small>clouddev</small>
-        </div>
-      </section>
-
-      <section class="create-panel" id="crear">
-        <img src="https://i.pravatar.cc/100?img=12" alt="Perfil">
-
-        <textarea id="postText" placeholder="¿Qué estás fabricando?"></textarea>
-
-        <label class="media-button" title="Subir fotografías">
-          ▧
-          <input type="file" id="photoInput" accept="image/*" multiple hidden>
-        </label>
-
-        <label class="media-button" title="Subir videos">
-          ▣
-          <input type="file" id="videoInput" accept="video/*" multiple hidden>
-        </label>
-
-        <label class="media-button audio-button" title="Subir música">
-          ♫
-          <input type="file" id="audioInput" accept="audio/*" multiple hidden>
-        </label>
-
-        <button id="publish" class="publish-button" type="button">
-          PUBLICAR
-        </button>
-
-        <div id="preview" class="upload-preview"></div>
-      </section>
-
-      <section class="feed-section" id="feed-section">
-        <div class="feed-toolbar">
-          <h2>COMMUNITY FEED</h2>
-          <nav class="feed-filters" aria-label="Filtrar publicaciones">
-            <a href="#feed" data-filter="all">Todo</a>
-            <a href="#feed" data-filter="image">Fotografías</a>
-            <a href="#feed" data-filter="video">Videos</a>
-            <a href="#feed" data-filter="audio">Música</a>
-            <a href="#feed" data-filter="text">Texto</a>
-          </nav>
-        </div>
-
-        <div class="posts-container" id="feed">
-          <article class="post post-card" data-type="image">
-            <div class="post-header">
-              <img src="https://i.pravatar.cc/100?img=15" alt="">
-              <div class="post-author">
-                <strong>cyberpunk_2050</strong>
-                <small>Hace 2 h · Tokyo, Japón</small>
-              </div>
-              <button class="post-more" type="button" aria-label="Más opciones">•••</button>
-            </div>
-
-            <div class="post-media">
-              <img
-                src="https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1200&q=85"
-                alt="Ciudad futurista">
-            </div>
-
-            <div class="post-reactions">
-              <button class="like-btn" type="button">♥ <span>8.4k</span></button>
-              <button class="comment-btn" type="button">◯ <span>342</span></button>
-              <button class="share-btn" type="button">➤</button>
-              <button class="save-btn" type="button">♧</button>
-            </div>
-
-            <div class="post-caption">
-              <strong>cyberpunk_2050</strong>
-              La humanidad ya no controla el futuro...
-              <p>El futuro nos observa. <span>#skynet #cyberpunk #future</span></p>
-            </div>
-
-            <div class="comment-area">
-              <input type="text" placeholder="Escribe un comentario..." aria-label="Escribe un comentario">
-              <button type="button">PUBLICAR</button>
-            </div>
-          </article>
-
-          <article class="post post-card" data-type="image">
-            <div class="post-header">
-              <img src="https://i.pravatar.cc/100?img=44" alt="">
-              <div class="post-author">
-                <strong>industrial_noise</strong>
-                <small>Hace 4 h · Alemania</small>
-              </div>
-              <button class="post-more" type="button" aria-label="Más opciones">•••</button>
-            </div>
-
-            <div class="post-media">
-              <img
-                src="https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1200&q=85"
-                alt="Paisaje industrial">
-            </div>
-
-            <div class="post-reactions">
-              <button class="like-btn" type="button">♥ <span>5.2k</span></button>
-              <button class="comment-btn" type="button">◯ <span>180</span></button>
-              <button class="share-btn" type="button">➤</button>
-              <button class="save-btn" type="button">♧</button>
-            </div>
-
-            <div class="post-caption">
-              <strong>industrial_noise</strong>
-              Sonidos del apocalipsis...
-              <p><span>#industrial #noise #2050</span></p>
-            </div>
-
-            <div class="comment-area">
-              <input type="text" placeholder="Escribe un comentario..." aria-label="Escribe un comentario">
-              <button type="button">PUBLICAR</button>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="reels-section" id="reels">
-        <div class="reels-heading">
-          <div>
-            <h2>CYBER REELS</h2>
-            <small>VIDEOS DE LA COMUNIDAD</small>
-          </div>
-          <span>● LIVE</span>
-        </div>
-
-        <div class="reels-grid" id="reelsContainer">
-          <article class="reel-card">
-            <div class="reel-cover reel-one">
-              <span class="reel-play">▶</span>
-              <span class="reel-views">▶ 12.8K</span>
-            </div>
-            <strong>SKYNET AWAKENS</strong>
-            <small>@darkcode_2050</small>
-          </article>
-
-          <article class="reel-card">
-            <div class="reel-cover reel-two">
-              <span class="reel-play">▶</span>
-              <span class="reel-views">▶ 8.2K</span>
-            </div>
-            <strong>INDUSTRIAL WORLD</strong>
-            <small>@industrial_noise</small>
-          </article>
-
-          <article class="reel-card">
-            <div class="reel-cover reel-three">
-              <span class="reel-play">▶</span>
-              <span class="reel-views">▶ 5.4K</span>
-            </div>
-            <strong>NEON CITY</strong>
-            <small>@tech_girl</small>
-          </article>
-        </div>
-      </section>
-    </main>
-
-    <aside class="right-sidebar">
-      <section class="right-panel offers-panel">
-        <div class="right-heading">
-          <h2>APOCALYPSE DROPS</h2>
-          <small>OFERTAS EXCLUSIVAS · SOLO HOY</small>
-        </div>
-
-        <div class="offer-item">
-          <div class="offer-image">☠</div>
-          <div class="offer-info">
-            <strong>Cyber Mask T-800</strong>
-            <b>$49.99</b>
-            <button type="button">VER OFERTA</button>
-          </div>
-        </div>
-
-        <div class="offer-item">
-          <div class="offer-image">▧</div>
-          <div class="offer-info">
-            <strong>Neon City Pack</strong>
-            <b>$24.99</b>
-            <button type="button">VER OFERTA</button>
-          </div>
-        </div>
-
-        <div class="offer-item">
-          <div class="offer-image">◉</div>
-          <div class="offer-info">
-            <strong>Skynet Wallpaper</strong>
-            <b>$9.99</b>
-            <button type="button">VER OFERTA</button>
-          </div>
-        </div>
-
-        <div class="offer-item">
-          <div class="offer-image">▣</div>
-          <div class="offer-info">
-            <strong>Cyberpunk T-Shirt</strong>
-            <b>$17.99</b>
-            <button type="button">VER OFERTA</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="right-panel gallery-panel">
-        <div class="right-heading">
-          <h3>TUS PUBLICACIONES</h3>
-          <a href="#feed">VER TODO →</a>
-        </div>
-
-        <div class="mini-gallery">
-          <div>888</div>
-          <div>SKYNET</div>
-          <div>2050</div>
-        </div>
-      </section>
-
-      <section class="right-panel chat-panel" id="mensajes">
-        <div class="chat-heading">
-          <div>
-            <h2>FACTORY CHAT</h2>
-            <small><span class="online-dot"></span> EN LÍNEA (12)</small>
-          </div>
-          <button id="chatToggle" type="button" aria-label="Contraer chat">−</button>
-        </div>
-
-        <div class="chat-messages" id="chatMessages">
-          <div class="chat-user">
-            <img src="https://i.pravatar.cc/100?img=32" alt="">
-            <div><strong>skynet_bot</strong><small>El futuro ya está aquí.</small></div>
-            <time>12:43</time>
-          </div>
-
-          <div class="chat-user">
-            <img src="https://i.pravatar.cc/100?img=12" alt="">
-            <div><strong>darkcode_2050</strong><small>Vamos por más!</small></div>
-            <time>12:37</time>
-          </div>
-
-          <div class="chat-user">
-            <img src="https://i.pravatar.cc/100?img=44" alt="">
-            <div><strong>metalhead</strong><small>🔥</small></div>
-            <time>12:21</time>
-          </div>
-
-          <div class="chat-user">
-            <img src="https://i.pravatar.cc/100?img=59" alt="">
-            <div><strong>tech_girl</strong><small>¿Alguien para un proyecto?</small></div>
-            <time>11:56</time>
-          </div>
-        </div>
-
-        <form class="chat-input" id="chatForm">
-          <input type="text" id="chatText" placeholder="Escribe un mensaje..." aria-label="Escribe un mensaje">
-          <button type="submit" aria-label="Enviar mensaje">➤</button>
-        </form>
+      <section class="panel side-menu">
+        <p class="eyebrow">WORKSPACE</p>
+        <a class="menu-link selected" href="#"><span>⌂</span> Inicio</a><a class="menu-link" href="#explore"><span>◎</span> Explorar</a>
+        <a class="menu-link" href="#reels"><span>▣</span> Reels <b class="menu-tag">NEW</b></a><a class="menu-link" href="#messages"><span>➤</span> Mensajes <i class="count">3</i></a>
+        <a class="menu-link" href="#notifications"><span>♧</span> Notificaciones <i class="count">7</i></a><a class="menu-link" href="#create"><span>＋</span> Crear publicación</a><a class="menu-link" href="#profile"><span>◉</span> Perfil</a>
+        <div class="side-divider"></div><p class="eyebrow">COMUNIDADES</p>
+        <a class="community" href="#"><span class="community-icon cyan">⌘</span><span>DevOps<small>12.4k miembros</small></span><i></i></a>
+        <a class="community" href="#"><span class="community-icon blue">☁</span><span>Cloud Security<small>8.7k miembros</small></span><i></i></a>
+        <a class="community" href="#"><span class="community-icon red">◈</span><span>Industrial Noise<small>6.3k miembros</small></span><i></i></a>
+        <a class="community" href="#"><span class="community-icon violet">⌬</span><span>Cyberpunk<small>15.2k miembros</small></span><i></i></a>
+        <div class="side-divider"></div><p class="eyebrow">TENDENCIAS</p>
+        <div class="tags"><a>#skynet</a><a>#cyberpunk</a><a>#industrial</a><a>#devops</a><a>#future</a><a>#ai</a></div>
+        <div class="skynet-promo"><div class="triangle-mark">△</div><b>SKYNET</b><span>BETTER. FASTER. STRONGER.</span></div>
       </section>
     </aside>
-  </div>
 
-  <footer class="footer">
-    UNDERCHAOS · SKYNET SOCIAL · 888 DIGITAL FACTORY
-    <span>SYSTEM ONLINE</span>
-  </footer>
+    <section class="feed-column">
+      <section class="stories panel">
+        <div class="story own"><div class="story-ring"><div class="avatar avatar-red">DC</div><span>＋</span></div><small>Tu historia</small></div>
+        <div class="story"><div class="story-ring"><img src="https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=120&h=120&fit=crop" alt=""></div><small>tech_girl</small></div>
+        <div class="story"><div class="story-ring"><img src="https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=120&h=120&fit=crop" alt=""></div><small>cyberpunk</small></div>
+        <div class="story"><div class="story-ring"><img src="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=120&h=120&fit=crop" alt=""></div><small>darkcode</small></div>
+        <div class="story"><div class="story-ring"><img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=120&h=120&fit=crop" alt=""></div><small>ai_master</small></div>
+        <div class="story"><div class="story-ring"><img src="https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=120&h=120&fit=crop" alt=""></div><small>metalhead</small></div>
+        <div class="story"><div class="story-ring"><img src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=120&h=120&fit=crop" alt=""></div><small>clouddev</small></div>
+      </section>
 
+      <section class="composer panel" id="create">
+        <div class="avatar avatar-red">DC</div><input id="postInput" type="text" placeholder="¿Qué estás fabricando?">
+        <button class="compose-tool" title="Añadir imagen">▧</button><button class="compose-tool" title="Añadir vídeo">▣</button>
+        <button class="primary-button" id="publishBtn">PUBLICAR <span>↗</span></button>
+      </section>
+
+      <div class="feed-heading"><div><span class="live-dot"></span><b>FEED GLOBAL</b><small> · TRANSMISIÓN EN TIEMPO REAL</small></div><button class="filter-button">PARA TI⌄</button></div>
+
+      <article class="post panel" data-search="cyberpunk skynet futuro ciudad tecnología darkcode">
+        <header class="post-header"><div class="avatar avatar-red">CP</div><div class="post-author"><strong>cyberpunk_2050 <span class="verified">✓</span></strong><small>Hace 2 h <i>·</i> Tokyo, Japón</small></div><button class="more">•••</button></header>
+        <div class="post-image image-city"><img src="https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=1400&h=760&fit=crop" alt="Ciudad futurista iluminada de noche"><div class="image-overlay"></div><div class="image-caption"><span>SKYNET // NETWORK ACTIVE</span><strong>THE FUTURE<br>IS WATCHING.</strong><small>THREAT LEVEL: RED</small></div><span class="image-label">LIVE TRANSMISSION</span></div>
+        <div class="post-actions"><button class="like-btn"><span>♥</span><b>8.4k</b></button><button class="comment-btn"><span>◯</span><b>342</b></button><button><span>➤</span></button><button class="save-btn">♧</button></div>
+        <div class="post-copy"><strong>cyberpunk_2050</strong> La humanidad ya no controla el futuro...<br><span>El futuro nos observa. <a>#skynet</a> <a>#cyberpunk</a> <a>#future</a></span></div>
+        <div class="comment-preview">Ver los 342 comentarios</div>
+      </article>
+
+      <article class="post panel" data-search="industrial noise apocalipsis factory red">
+        <header class="post-header"><div class="avatar avatar-orange">IN</div><div class="post-author"><strong>industrial_noise <span class="verified">✓</span></strong><small>Hace 4 h <i>·</i> Alemania</small></div><button class="more">•••</button></header>
+        <div class="post-image image-industrial"><img src="https://images.unsplash.com/photo-1516937941344-00b4e0337589?w=1400&h=650&fit=crop" alt="Complejo industrial con humo y luces rojas"><div class="image-overlay red-overlay"></div><div class="image-caption"><span>INDUSTRIAL DIVISION / 07</span><strong>AFTER THE<br>COLLAPSE.</strong><small>NO SIGNAL · NO RETURN</small></div><span class="image-label">01 / 03</span></div>
+        <div class="post-actions"><button class="like-btn"><span>♥</span><b>5.2k</b></button><button class="comment-btn"><span>◯</span><b>180</b></button><button><span>➤</span></button><button class="save-btn">♧</button></div>
+        <div class="post-copy"><strong>industrial_noise</strong> Sonidos del apocalipsis. Una nueva frecuencia para el fin del mundo.<br><span><a>#industrial</a> <a>#noise</a> <a>#2050</a></span></div>
+        <div class="comment-preview">Ver los 180 comentarios</div>
+      </article>
+    </section>
+
+    <aside class="right-column">
+      <section class="panel drops">
+        <div class="section-title"><div><h2>APOCALYPSE DROPS</h2><small>OFERTAS EXCLUSIVAS · SOLO HOY</small></div><span class="live-dot"></span></div>
+        <div class="product"><img src="https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=180&h=180&fit=crop" alt=""><div><span class="discount">-70%</span><b>Cyber Mask T-800</b><strong>$49.99 <del>$169.99</del></strong><button>VER OFERTA</button></div></div>
+        <div class="product"><img src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=180&h=180&fit=crop" alt=""><div><span class="discount">-60%</span><b>Neon City Pack</b><strong>$24.99 <del>$64.99</del></strong><button>VER OFERTA</button></div></div>
+        <div class="product"><img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=180&h=180&fit=crop" alt=""><div><span class="discount">-50%</span><b>Skynet Wallpaper</b><strong>$9.99 <del>$19.99</del></strong><button>VER OFERTA</button></div></div>
+        <div class="product"><img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=180&h=180&fit=crop" alt=""><div><span class="discount">-40%</span><b>Cyberpunk T-Shirt</b><strong>$17.99 <del>$29.99</del></strong><button>VER OFERTA</button></div></div>
+        <div class="mini-gallery"><div class="gallery-title">TUS PUBLICACIONES <a href="#">VER TODO →</a></div><div><img src="https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=120&h=90&fit=crop"><img src="https://images.unsplash.com/photo-1516937941344-00b4e0337589?w=120&h=90&fit=crop"><img src="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=120&h=90&fit=crop"></div></div>
+      </section>
+      <section class="panel chat" id="messages">
+        <div class="chat-heading"><div><h2>FACTORY CHAT</h2><small><i></i> EN LÍNEA (12)</small></div><button>−</button></div>
+        <div class="chat-person"><div class="avatar avatar-red">S</div><div><b>skynet_bot</b><small>El futuro ya está aquí.</small></div><time>12:43</time></div>
+        <div class="chat-person"><div class="avatar avatar-orange">DC</div><div><b>darkcode_2050</b><small>Vamos por más!</small></div><time>12:37</time></div>
+        <div class="chat-person"><div class="avatar avatar-blue">M</div><div><b>metalhead</b><small>🔥</small></div><time>12:21</time></div>
+        <div class="chat-person"><div class="avatar avatar-violet">T</div><div><b>tech_girl</b><small>¿Alguien para un proyecto?</small></div><time>11:56</time></div>
+        <div class="chat-person"><div class="avatar avatar-cyan">C</div><div><b>clouddev</b><small>Deploy en 5... 4... 3...</small></div><time>11:32</time></div>
+        <form class="chat-input" id="chatForm"><input id="chatMessage" placeholder="Escribe un mensaje..."><button aria-label="Enviar">➤</button></form>
+      </section>
+      <div class="right-footer">TÉRMINOS · PRIVACIDAD · ACERCA DE<br>© 2050 SKYNET SOCIAL SYSTEMS</div>
+    </aside>
+  </main>
+  <div class="toast" id="toast">PUBLICACIÓN TRANSMITIDA</div>
   <script src="app.js"></script>
 </body>
 </html>
