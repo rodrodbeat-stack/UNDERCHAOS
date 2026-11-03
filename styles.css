@@ -1212,3 +1212,46 @@ a {
     gap: 13px;
   }
 }
+.preview-item {
+  position: relative;
+  display: inline-flex;
+}
+
+.remove-preview {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 23px;
+  height: 23px;
+  border: 0;
+  border-radius: 50%;
+  background: #ff263d;
+  color: white;
+}
+
+.post-media {
+  display: grid;
+  gap: 5px;
+}
+
+.post-media audio {
+  width: 100%;
+  padding: 12px;
+  background: #111820;
+}
+
+.new-comment {
+  padding: 8px 0;
+  font-size: 11px;
+  color: #cbd1d9;
+}
+
+.uploaded-reel video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.reel-cover.uploaded-reel {
+  background: #050609;
+}
