@@ -1,675 +1,868 @@
-/* ==========================================
-   UNDERCHAOS — SOCIAL ENGINE
-   Version 1.0
-   ========================================== */
+/* =====================================================
+   CYBERREELS — SKYNET SOCIAL ENGINE
+   SKYNET SOCIAL SYSTEMS | 2050
+   ===================================================== */
 
-const STORAGE_KEY = "underchaos_social_v1";
+(() => {
+  "use strict";
 
-const $ = (selector, root = document) => root.querySelector(selector);
+  const STORAGE = "cyberreels_skynet_v1";
 
-const feed = $("#feed");
-const reelsFeed = $("#reelsFeed");
-const savedFeed = $("#savedFeed");
-const postInput = $("#postInput");
-const publishBtn = $("#publishBtn");
-const mediaPreview = $("#mediaPreview");
-const photoInput = $("#photoInput");
-const videoInput = $("#videoInput");
-const audioInput = $("#audioInput");
+  const $ = (selector, root = document) =>
+    root.querySelector(selector);
 
-let pendingFiles = [];
-let posts = [];
-let savedIds = new Set();
-let following = new Set();
-let profile = {
-    name: "darkcode_2050",
-    bio: "Digital creator | UNDERCHAOS"
-};
+  const $$ = (selector, root = document) =>
+    [...root.querySelectorAll(selector)];
 
-let temporaryUrls = [];
+  const feed = $(".feed-column");
+  const composer = $(".composer");
+  const postInput = $("#postInput");
+  const publishBtn = $("#publishBtn");
+  const toast = $("#toast");
 
-function createId() {
-    return "post-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
-}
+  let pendingMedia = [];
+  let mediaURLs = [];
+  let reelsModal = null;
 
-function escapeHTML(value = "") {
+  let state = {
+    likes: {},
+    saved: [],
+    comments: {},
+    following: [],
+    messages: []
+  };
+
+  /* ===============================
+     UTILIDADES
+  =============================== */
+
+  function uid() {
+    return "CR-" + Date.now() + "-" +
+      Math.random().toString(36).slice(2, 7);
+  }
+
+  function escapeHTML(value = "") {
     return String(value).replace(/[&<>"']/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;"
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
     })[char]);
-}
+  }
 
-function showToast(message) {
-    const toast = $("#toast");
+  function notify(message) {
     if (!toast) return;
 
     toast.textContent = message;
     toast.classList.add("show");
 
-    clearTimeout(showToast.timer);
-    showToast.timer = setTimeout(() => {
-        toast.classList.remove("show");
+    clearTimeout(notify.timer);
+
+    notify.timer = setTimeout(() => {
+      toast.classList.remove("show");
     }, 2600);
-}
+  }
 
-function loadState() {
+  function saveState() {
     try {
-        const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
-
-        if (data) {
-            posts = Array.isArray(data.posts) ? data.posts : [];
-            savedIds = new Set(data.savedIds || []);
-            following = new Set(data.following || []);
-
-            if (data.profile) {
-                profile = { ...profile, ...data.profile };
-            }
-        }
+      localStorage.setItem(STORAGE, JSON.stringify(state));
     } catch (error) {
-        console.error("Error cargando UNDERCHAOS:", error);
+      console.error("Storage error:", error);
+      notify("No se pudo guardar el estado local.");
     }
-}
+  }
 
-function saveState() {
-    const persistentPosts = posts.map(post => ({
-        ...post,
-        media: [],
-        comments: post.comments || []
-    }));
+  function loadState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE));
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        posts: persistentPosts,
-        savedIds: [...savedIds],
-        following: [...following],
-        profile
-    }));
-}
+      if (saved) {
+        state = { ...state, ...saved };
+      }
+    } catch (error) {
+      console.error("Error loading state:", error);
+    }
+  }
 
-function initializeDemoPosts() {
-    document.querySelectorAll(".post").forEach((element, index) => {
-        if (!element.dataset.postId) {
-            element.dataset.postId = "demo-" + index;
-        }
+  function formatCount(number) {
+    if (number >= 1000000) {
+      return (number / 1000000).toFixed(1) + "M";
+    }
 
-        if (!element.dataset.owner) {
-            element.dataset.owner = "community";
-        }
+    if (number >= 1000) {
+      return (number / 1000).toFixed(1) + "k";
+    }
 
-        const likeButton = $(".like-btn", element);
-        const likeCount = $(".like-count", element);
+    return String(number);
+  }
 
-        posts.push({
-            id: element.dataset.postId,
-            owner: element.dataset.owner,
-            author: $(".post-author", element)?.textContent.trim() || "UNDERCHAOS",
-            text: $(".post-copy", element)?.textContent.trim() || "",
-            likes: Number(likeCount?.textContent || 0),
-            liked: false,
-            comments: [],
-            media: [],
-            demo: true
-        });
+  function parseCount(value) {
+    const text = String(value || "0").trim().toLowerCase();
+
+    if (text.endsWith("k")) {
+      return Math.round(parseFloat(text) * 1000);
+    }
+
+    if (text.endsWith("m")) {
+      return Math.round(parseFloat(text) * 1000000);
+    }
+
+    return parseInt(text.replace(/\D/g, ""), 10) || 0;
+  }
+
+  /* ===============================
+     INICIALIZACIÓN DE PUBLICACIONES
+  =============================== */
+
+  function initializePosts() {
+    $$(".post").forEach((post, index) => {
+      if (!post.dataset.postId) {
+        post.dataset.postId = "original-" + index;
+      }
+
+      const id = post.dataset.postId;
+
+      if (state.likes[id] === undefined) {
+        state.likes[id] = {
+          count: parseCount($(".like-btn b", post)?.textContent),
+          active: false
+        };
+      }
+
+      const like = state.likes[id];
+
+      $(".like-btn b", post).textContent =
+        formatCount(like.count);
+
+      $(".like-btn", post)?.classList.toggle(
+        "liked",
+        like.active
+      );
+
+      $(".save-btn", post)?.classList.toggle(
+        "saved",
+        state.saved.includes(id)
+      );
+
+      updateComments(post);
     });
-}
 
-function getPost(id) {
-    return posts.find(post => post.id === id);
-}
+    saveState();
+  }
 
-function updateProfile() {
-    const name = $("#profileName");
-    const bio = $("#profileBio");
+  /* ===============================
+     COMPOSITOR MULTIMEDIA
+  =============================== */
 
-    if (name) name.textContent = profile.name;
-    if (bio) bio.textContent = profile.bio;
+  function createUploadControls() {
+    if (!composer) return;
 
-    const followerCount = $("#followerCount");
-    if (followerCount) {
-        followerCount.textContent = 120 + following.size;
-    }
+    const buttons = $$(".compose-tool", composer);
 
-    const profilePosts = $("#profilePosts");
-    if (profilePosts) {
-        profilePosts.textContent = posts.filter(post =>
-            post.owner === "me"
-        ).length;
-    }
-}
+    if (buttons.length < 2) return;
 
-/* ==========================================
-   MULTIMEDIA
-   ========================================== */
+    buttons[0].title = "Subir fotografías";
+    buttons[1].title = "Subir vídeos";
 
-function addFiles(files, type) {
-    const accepted = {
-        image: ["image/jpeg", "image/png", "image/webp", "image/gif"],
-        video: ["video/mp4", "video/webm", "video/quicktime"],
-        audio: ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audio/mp4"]
+    const audioButton = document.createElement("button");
+
+    audioButton.type = "button";
+    audioButton.className = "compose-tool";
+    audioButton.title = "Subir música";
+    audioButton.textContent = "♫";
+
+    buttons[1].after(audioButton);
+
+    const photoInput = createInput("image/*", true);
+    const videoInput = createInput("video/mp4,video/webm,video/quicktime", true);
+    const audioInput = createInput("audio/*", true);
+
+    composer.append(photoInput, videoInput, audioInput);
+
+    buttons[0].addEventListener("click", () => photoInput.click());
+    buttons[1].addEventListener("click", () => videoInput.click());
+    audioButton.addEventListener("click", () => audioInput.click());
+
+    photoInput.addEventListener("change", event => {
+      addMedia(event.target.files, "image");
+      event.target.value = "";
+    });
+
+    videoInput.addEventListener("change", event => {
+      addMedia(event.target.files, "video");
+      event.target.value = "";
+    });
+
+    audioInput.addEventListener("change", event => {
+      addMedia(event.target.files, "audio");
+      event.target.value = "";
+    });
+
+    createPreviewArea();
+  }
+
+  function createInput(accept, multiple) {
+    const input = document.createElement("input");
+
+    input.type = "file";
+    input.accept = accept;
+    input.multiple = multiple;
+    input.hidden = true;
+
+    return input;
+  }
+
+  function createPreviewArea() {
+    const preview = document.createElement("div");
+
+    preview.id = "cyberMediaPreview";
+    preview.className = "cyber-media-preview";
+
+    publishBtn?.before(preview);
+  }
+
+  function addMedia(files, type) {
+    const limits = {
+      image: 25,
+      video: 150,
+      audio: 30
     };
 
     Array.from(files).forEach(file => {
-        if (!accepted[type].includes(file.type)) {
-            showToast("Formato no compatible: " + file.name);
-            return;
-        }
+      if (!file.type.startsWith(type + "/")) {
+        notify("Archivo incompatible.");
+        return;
+      }
 
-        const maxSize = type === "video" ? 150 : 30;
+      if (file.size > limits[type] * 1024 * 1024) {
+        notify(`Máximo permitido: ${limits[type]} MB.`);
+        return;
+      }
 
-        if (file.size > maxSize * 1024 * 1024) {
-            showToast(`El archivo supera el límite de ${maxSize} MB.`);
-            return;
-        }
+      const url = URL.createObjectURL(file);
 
-        pendingFiles.push({
-            id: createId(),
-            file,
-            type,
-            url: URL.createObjectURL(file)
-        });
+      pendingMedia.push({
+        id: uid(),
+        type,
+        name: file.name,
+        mime: file.type,
+        url
+      });
+
+      mediaURLs.push(url);
     });
 
     renderPreview();
-}
 
-function renderPreview() {
-    if (!mediaPreview) return;
+    if (pendingMedia.length) {
+      notify("Contenido multimedia cargado.");
+    }
+  }
 
-    mediaPreview.innerHTML = "";
+  function renderPreview() {
+    const preview = $("#cyberMediaPreview");
 
-    pendingFiles.forEach(item => {
-        const wrapper = document.createElement("div");
-        wrapper.className = "preview-item";
+    if (!preview) return;
 
-        let media;
+    preview.innerHTML = "";
 
-        if (item.type === "image") {
-            media = document.createElement("img");
-            media.src = item.url;
-        } else if (item.type === "video") {
-            media = document.createElement("video");
-            media.src = item.url;
-            media.controls = true;
-            media.playsInline = true;
-        } else {
-            media = document.createElement("div");
-            media.className = "audio-card";
-            media.textContent = "♫ " + item.file.name;
-        }
+    pendingMedia.forEach(item => {
+      const card = document.createElement("div");
 
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.textContent = "×";
-        remove.className = "remove-preview";
+      card.className = "cyber-preview-item";
 
-        remove.addEventListener("click", () => {
-            URL.revokeObjectURL(item.url);
-            pendingFiles = pendingFiles.filter(file => file.id !== item.id);
-            renderPreview();
-        });
+      let content = "";
 
-        wrapper.append(media, remove);
-        mediaPreview.appendChild(wrapper);
+      if (item.type === "image") {
+        content = `<img src="${item.url}" alt="Vista previa">`;
+      }
+
+      if (item.type === "video") {
+        content = `
+          <video src="${item.url}" controls playsinline></video>
+        `;
+      }
+
+      if (item.type === "audio") {
+        content = `
+          <div class="audio-preview">
+            <span>♫</span>
+            <small>${escapeHTML(item.name)}</small>
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        ${content}
+        <button type="button" class="remove-media"
+          data-remove-media="${item.id}">×</button>
+      `;
+
+      preview.appendChild(card);
     });
-}
+  }
 
-photoInput?.addEventListener("change", event => {
-    addFiles(event.target.files, "image");
-    event.target.value = "";
-});
+  /* ===============================
+     PUBLICAR
+  =============================== */
 
-videoInput?.addEventListener("change", event => {
-    addFiles(event.target.files, "video");
-    event.target.value = "";
-});
-
-audioInput?.addEventListener("change", event => {
-    addFiles(event.target.files, "audio");
-    event.target.value = "";
-});
-
-/* ==========================================
-   MEDIA RENDERING
-   ========================================== */
-
-function renderMedia(media = []) {
-    if (!media.length) return "";
-
-    return `
-        <div class="post-media">
-            ${media.map(item => {
-                if (item.type === "image") {
-                    return `<img src="${item.url}" alt="Publicación UNDERCHAOS">`;
-                }
-
-                if (item.type === "video") {
-                    return `
-                        <video controls playsinline preload="metadata">
-                            <source src="${item.url}" type="${escapeHTML(item.mime || "video/mp4")}">
-                        </video>
-                    `;
-                }
-
-                return `
-                    <div class="audio-card">
-                        <div class="audio-icon">♫</div>
-                        <div class="audio-info">
-                            <strong>${escapeHTML(item.name)}</strong>
-                            <audio controls preload="metadata">
-                                <source src="${item.url}" type="${escapeHTML(item.mime || "audio/mpeg")}">
-                            </audio>
-                        </div>
-                    </div>
-                `;
-            }).join("")}
-        </div>
-    `;
-}
-
-/* ==========================================
-   CREATE POST
-   ========================================== */
-
-function publishPost() {
+  function publishPost() {
     const text = postInput?.value.trim() || "";
 
-    if (!text && pendingFiles.length === 0) {
-        showToast("Escribe algo o selecciona contenido multimedia.");
-        return;
+    if (!text && pendingMedia.length === 0) {
+      notify("Introduce contenido antes de publicar.");
+      return;
     }
 
-    const media = pendingFiles.map(item => {
-        temporaryUrls.push(item.url);
+    const id = uid();
 
-        return {
-            type: item.type,
-            url: item.url,
-            name: item.file.name,
-            mime: item.file.type
-        };
-    });
+    const media = pendingMedia.map(item => ({ ...item }));
 
-    const post = {
-        id: createId(),
-        owner: "me",
-        author: profile.name,
-        text,
-        likes: 0,
-        liked: false,
-        comments: [],
-        media,
-        demo: false
+    const article = document.createElement("article");
+
+    article.className = "post panel new-post";
+    article.dataset.postId = id;
+    article.dataset.search = text.toLowerCase();
+
+    article.innerHTML = `
+      <header class="post-header">
+        <div class="avatar avatar-red">DC</div>
+
+        <div class="post-author">
+          <strong>darkcode_2050</strong>
+          <small>Ahora · SKYNET NETWORK</small>
+        </div>
+
+        <button class="more">•••</button>
+      </header>
+
+      ${text ? `
+        <div class="post-copy">
+          <strong>darkcode_2050</strong>
+          ${escapeHTML(text)}
+        </div>
+      ` : ""}
+
+      ${renderMedia(media)}
+
+      <div class="post-actions">
+        <button class="like-btn">
+          <span>♥</span><b>0</b>
+        </button>
+
+        <button class="comment-btn">
+          <span>◯</span><b>0</b>
+        </button>
+
+        <button class="share-btn">
+          <span>➤</span>
+        </button>
+
+        <button class="save-btn">♧</button>
+      </div>
+
+      <div class="post-copy post-comments">
+        <div class="comments-list"></div>
+
+        <form class="comment-form">
+          <input name="comment"
+            placeholder="Escribe un comentario..."
+            maxlength="300" required>
+          <button type="submit">➤</button>
+        </form>
+      </div>
+
+      <div class="comment-preview">Añadir un comentario</div>
+    `;
+
+    feed.querySelector(".feed-heading").after(article);
+
+    state.likes[id] = {
+      count: 0,
+      active: false
     };
-
-    posts.unshift(post);
 
     if (postInput) postInput.value = "";
 
-    pendingFiles = [];
+    pendingMedia = [];
     renderPreview();
 
-    renderAll();
     saveState();
 
-    showToast("Publicación creada correctamente.");
-}
+    notify("TRANSMISIÓN PUBLICADA");
+  }
 
-publishBtn?.addEventListener("click", publishPost);
-
-/* ==========================================
-   POST TEMPLATE
-   ========================================== */
-
-function renderPost(post) {
-    const isSaved = savedIds.has(post.id);
-    const likedClass = post.liked ? "liked" : "";
+  function renderMedia(media) {
+    if (!media.length) return "";
 
     return `
-        <article class="post" data-post-id="${escapeHTML(post.id)}"
-            data-owner="${escapeHTML(post.owner)}"
-            data-search="${escapeHTML(post.author + " " + post.text)}">
-
-            <div class="post-header">
-                <div class="avatar avatar-red">U</div>
-
-                <div>
-                    <strong class="post-author">${escapeHTML(post.author)}</strong>
-                    <small>UNDERCHAOS · Comunidad</small>
-                </div>
-
-                <span class="post-menu">•••</span>
-            </div>
-
-            ${post.text ? `<div class="post-copy">${escapeHTML(post.text)}</div>` : ""}
-
-            ${renderMedia(post.media)}
-
-            <div class="post-actions">
-                <button class="like-btn ${likedClass}" type="button">
-                    ♥ <span class="like-count">${post.likes}</span>
-                </button>
-
-                <button class="comment-btn" type="button">
-                    💬 ${post.comments.length}
-                </button>
-
-                <button class="share-btn" type="button">↗ Compartir</button>
-
-                <button class="save-btn ${isSaved ? "saved" : ""}" type="button">
-                    ${isSaved ? "★ Guardado" : "☆ Guardar"}
-                </button>
-            </div>
-
-            <div class="comments-area">
-                <div class="comments-list">
-                    ${post.comments.map(comment => `
-                        <div class="comment-item">
-                            <strong>${escapeHTML(comment.author)}:</strong>
-                            ${escapeHTML(comment.text)}
-                        </div>
-                    `).join("")}
-                </div>
-
-                <form class="comment-form">
-                    <input type="text" name="comment"
-                        placeholder="Escribe un comentario..."
-                        maxlength="300" required>
-                    <button type="submit">Enviar</button>
-                </form>
-            </div>
-        </article>
-    `;
-}
-
-/* ==========================================
-   REELS
-   ========================================== */
-
-function renderReels() {
-    if (!reelsFeed) return;
-
-    const reels = posts.filter(post =>
-        post.media?.some(item => item.type === "video")
-    );
-
-    reelsFeed.innerHTML = reels.length
-        ? reels.map(post => {
-            const video = post.media.find(item => item.type === "video");
-
+      <div class="post-image cyber-media">
+        ${media.map(item => {
+          if (item.type === "image") {
             return `
-                <article class="reel-card" data-post-id="${escapeHTML(post.id)}">
-                    <video controls playsinline preload="metadata">
-                        <source src="${video.url}" type="${escapeHTML(video.mime || "video/mp4")}">
-                    </video>
-
-                    <div class="reel-info">
-                        <strong>@${escapeHTML(post.author)}</strong>
-                        <p>${escapeHTML(post.text)}</p>
-                        <span>♥ ${post.likes}</span>
-                    </div>
-                </article>
+              <img src="${item.url}"
+                alt="${escapeHTML(item.name)}">
             `;
-        }).join("")
-        : `<p class="empty-state">Todavía no hay Reels. ¡Publica tu primer video!</p>`;
-}
+          }
 
-/* ==========================================
-   SAVED POSTS
-   ========================================== */
+          if (item.type === "video") {
+            return `
+              <video controls playsinline preload="metadata">
+                <source src="${item.url}" type="${escapeHTML(item.mime)}">
+              </video>
+            `;
+          }
 
-function renderSaved() {
-    if (!savedFeed) return;
+          return `
+            <div class="cyber-audio">
+              <span>♫</span>
+              <div>
+                <strong>${escapeHTML(item.name)}</strong>
+                <audio controls preload="metadata">
+                  <source src="${item.url}" type="${escapeHTML(item.mime)}">
+                </audio>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  }
 
-    const savedPosts = posts.filter(post => savedIds.has(post.id));
+  publishBtn?.addEventListener("click", publishPost);
 
-    savedFeed.innerHTML = savedPosts.length
-        ? savedPosts.map(renderPost).join("")
-        : `<p class="empty-state">Todavía no tienes publicaciones guardadas.</p>`;
-}
+  postInput?.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+      publishPost();
+    }
+  });
 
-/* ==========================================
-   RENDER ALL
-   ========================================== */
+  /* ===============================
+     LIKES / GUARDADOS / COMPARTIR
+  =============================== */
 
-function renderAll() {
-    if (feed) {
-        const newPosts = posts.filter(post => !post.demo);
+  document.addEventListener("click", event => {
 
-        const existingDemo = [...feed.querySelectorAll(".post")];
+    const removeButton = event.target.closest("[data-remove-media]");
 
-        feed.innerHTML = newPosts.map(renderPost).join("");
+    if (removeButton) {
+      const id = removeButton.dataset.removeMedia;
 
-        existingDemo.forEach(element => {
-            feed.appendChild(element);
-        });
+      const item = pendingMedia.find(media => media.id === id);
 
-        // Restaurar estados de los posts iniciales
-        existingDemo.forEach(element => {
-            const post = getPost(element.dataset.postId);
-            if (!post) return;
+      if (item) {
+        URL.revokeObjectURL(item.url);
+        pendingMedia = pendingMedia.filter(media => media.id !== id);
+        renderPreview();
+      }
 
-            const like = $(".like-btn", element);
-            const count = $(".like-count", element);
-            const save = $(".save-btn", element);
-
-            if (like) like.classList.toggle("liked", !!post.liked);
-            if (count) count.textContent = post.likes;
-
-            if (save) {
-                save.classList.toggle("saved", savedIds.has(post.id));
-                save.textContent = savedIds.has(post.id)
-                    ? "★ Guardado"
-                    : "☆ Guardar";
-            }
-        });
+      return;
     }
 
-    renderReels();
-    renderSaved();
-    updateProfile();
-}
+    const post = event.target.closest(".post");
 
-/* ==========================================
-   EVENT DELEGATION
-   ========================================== */
+    if (post) {
+      const id = post.dataset.postId;
 
-document.addEventListener("click", event => {
-    const postElement = event.target.closest(".post");
+      if (event.target.closest(".like-btn")) {
+        const like = state.likes[id];
 
-    if (postElement) {
-        const post = getPost(postElement.dataset.postId);
+        if (!like) return;
 
-        if (post) {
-            if (event.target.closest(".like-btn")) {
-                post.liked = !post.liked;
-                post.likes += post.liked ? 1 : -1;
+        like.active = !like.active;
+        like.count += like.active ? 1 : -1;
 
-                renderAll();
-                saveState();
-                return;
-            }
+        $(".like-btn b", post).textContent =
+          formatCount(like.count);
 
-            if (event.target.closest(".save-btn")) {
-                if (savedIds.has(post.id)) {
-                    savedIds.delete(post.id);
-                    showToast("Publicación eliminada de guardados.");
-                } else {
-                    savedIds.add(post.id);
-                    showToast("Publicación guardada.");
-                }
+        $(".like-btn", post).classList.toggle(
+          "liked",
+          like.active
+        );
 
-                renderAll();
-                saveState();
-                return;
-            }
-
-            if (event.target.closest(".comment-btn")) {
-                const input = $(".comment-form input", postElement);
-                input?.focus();
-                return;
-            }
-
-            if (event.target.closest(".share-btn")) {
-                const shareUrl = location.href.split("#")[0] +
-                    "#post-" + encodeURIComponent(post.id);
-
-                if (navigator.share) {
-                    navigator.share({
-                        title: "UNDERCHAOS",
-                        text: post.text,
-                        url: shareUrl
-                    }).catch(() => {});
-                } else if (navigator.clipboard) {
-                    navigator.clipboard.writeText(shareUrl)
-                        .then(() => showToast("Enlace copiado."));
-                } else {
-                    showToast("No se pudo compartir desde este navegador.");
-                }
-                return;
-            }
-        }
-    }
-
-    const followButton = event.target.closest(".follow-btn");
-
-    if (followButton) {
-        const username = followButton.dataset.username ||
-            followButton.textContent.trim();
-
-        if (following.has(username)) {
-            following.delete(username);
-            followButton.textContent = "Seguir";
-            showToast("Has dejado de seguir.");
-        } else {
-            following.add(username);
-            followButton.textContent = "Siguiendo";
-            showToast("Ahora sigues a " + username);
-        }
-
-        updateProfile();
         saveState();
+        return;
+      }
+
+      if (event.target.closest(".save-btn")) {
+        const button = $(".save-btn", post);
+
+        if (state.saved.includes(id)) {
+          state.saved = state.saved.filter(item => item !== id);
+          button.classList.remove("saved");
+
+          notify("PUBLICACIÓN ELIMINADA DE GUARDADOS");
+        } else {
+          state.saved.push(id);
+          button.classList.add("saved");
+
+          notify("PUBLICACIÓN GUARDADA");
+        }
+
+        saveState();
+        return;
+      }
+
+      if (event.target.closest(".comment-btn")) {
+        $(".comment-form input", post)?.focus();
+        return;
+      }
+
+      if (event.target.closest(".share-btn")) {
+        sharePost(post);
+        return;
+      }
+
+      if (event.target.closest(".comment-preview")) {
+        $(".comment-form input", post)?.focus();
+      }
     }
-});
 
-/* ==========================================
-   COMMENTS
-   ========================================== */
+  });
 
-document.addEventListener("submit", event => {
+  async function sharePost(post) {
+    const url = location.href.split("#")[0] +
+      "#post-" + encodeURIComponent(post.dataset.postId);
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "CYBERREELS",
+          text: "Mira esta publicación en SKYNET SOCIAL",
+          url
+        });
+      } else {
+        await navigator.clipboard.writeText(url);
+        notify("ENLACE COPIADO");
+      }
+    } catch (error) {
+      console.log("Share cancelled");
+    }
+  }
+
+  /* ===============================
+     COMENTARIOS
+  =============================== */
+
+  document.addEventListener("submit", event => {
     const form = event.target.closest(".comment-form");
+
     if (!form) return;
 
     event.preventDefault();
 
-    const postElement = form.closest(".post");
-    const post = getPost(postElement?.dataset.postId);
-    const input = form.querySelector('input[name="comment"]');
-
-    if (!post || !input) return;
-
+    const post = form.closest(".post");
+    const id = post.dataset.postId;
+    const input = $('input[name="comment"]', form);
     const text = input.value.trim();
+
     if (!text) return;
 
-    post.comments.push({
-        author: profile.name,
-        text
+    if (!state.comments[id]) {
+      state.comments[id] = [];
+    }
+
+    state.comments[id].push({
+      author: "darkcode_2050",
+      text
     });
 
-    renderAll();
+    input.value = "";
+
+    updateComments(post);
     saveState();
 
-    showToast("Comentario publicado.");
-});
+    notify("COMENTARIO TRANSMITIDO");
+  });
 
-/* ==========================================
-   PROFILE EDITOR
-   ========================================== */
+  function updateComments(post) {
+    const id = post.dataset.postId;
+    const comments = state.comments[id] || [];
 
-const profileModal = $("#profileModal");
+    const list = $(".comments-list", post);
+    const count = $(".comment-btn b", post);
 
-$("#editProfileBtn")?.addEventListener("click", () => {
-    if ($("#editUsername")) {
-        $("#editUsername").value = profile.name;
+    if (list) {
+      list.innerHTML = comments.map(comment => `
+        <div class="comment-item">
+          <strong>${escapeHTML(comment.author)}</strong>
+          ${escapeHTML(comment.text)}
+        </div>
+      `).join("");
     }
 
-    if ($("#editBio")) {
-        $("#editBio").value = profile.bio;
+    if (count) {
+      count.textContent = comments.length;
     }
+  }
 
-    profileModal?.classList.add("active");
-});
+  /* ===============================
+     REELS
+  =============================== */
 
-$("#closeProfile")?.addEventListener("click", () => {
-    profileModal?.classList.remove("active");
-});
+  function createReelsModal() {
+    if (reelsModal) return;
 
-$("#saveProfile")?.addEventListener("click", () => {
-    const username = $("#editUsername")?.value.trim();
-    const bio = $("#editBio")?.value.trim();
+    reelsModal = document.createElement("div");
 
-    if (!username) {
-        showToast("El nombre no puede estar vacío.");
-        return;
-    }
+    reelsModal.id = "cyberReelsModal";
+    reelsModal.className = "cyber-reels-modal";
 
-    const oldName = profile.name;
+    reelsModal.innerHTML = `
+      <div class="reels-window">
+        <header>
+          <div>
+            <strong>CYBERREELS</strong>
+            <small>SKYNET VIDEO NETWORK</small>
+          </div>
 
-    profile.name = username.replace(/^@/, "");
-    profile.bio = bio || "";
+          <button id="closeReels">✕</button>
+        </header>
 
-    posts.forEach(post => {
-        if (post.owner === "me" && post.author === oldName) {
-            post.author = profile.name;
-        }
+        <div id="reelsContainer"></div>
+      </div>
+    `;
+
+    document.body.appendChild(reelsModal);
+
+    $("#closeReels", reelsModal).addEventListener("click", closeReels);
+  }
+
+  function openReels() {
+    createReelsModal();
+
+    const container = $("#reelsContainer");
+
+    const videos = $$(".post").flatMap(post => {
+      return [...$("video", post.parentElement || document)?.parentElement?.querySelectorAll("video") || []]
+        .filter(video => video.closest(".post") === post)
+        .map(video => ({
+          video,
+          author: $(".post-author", post)?.textContent.trim() || "SKYNET USER",
+          text: $(".post-copy", post)?.textContent.trim() || ""
+        }));
     });
 
-    updateProfile();
-    renderAll();
-    saveState();
+    const userVideos = $$(".new-post video");
 
-    profileModal?.classList.remove("active");
-    showToast("Perfil actualizado.");
-});
+    userVideos.forEach(video => {
+      videos.push({
+        video,
+        author: "darkcode_2050",
+        text: "SKYNET VIDEO TRANSMISSION"
+      });
+    });
 
-/* ==========================================
-   SEARCH
-   ========================================== */
+    if (!videos.length) {
+      container.innerHTML = `
+        <div class="reels-empty">
+          <span>▣</span>
+          <h2>NO SIGNAL</h2>
+          <p>Todavía no hay vídeos en la red.</p>
+        </div>
+      `;
+    } else {
+      container.innerHTML = videos.map((item, index) => `
+        <div class="reel-item">
+          <div class="reel-video" data-reel-index="${index}"></div>
+          <div class="reel-caption">
+            <strong>${escapeHTML(item.author)}</strong>
+            <p>${escapeHTML(item.text)}</p>
+          </div>
+        </div>
+      `).join("");
 
-$("#searchInput")?.addEventListener("input", event => {
+      $$(".reel-item", container).forEach((item, index) => {
+        const source = videos[index].video.cloneNode(true);
+        source.controls = true;
+        source.playsInline = true;
+        source.removeAttribute("autoplay");
+
+        $(".reel-video", item).appendChild(source);
+      });
+    }
+
+    reelsModal.classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeReels() {
+    reelsModal?.classList.remove("active");
+    document.body.style.overflow = "";
+  }
+
+  /* ===============================
+     NAVEGACIÓN SUPERIOR
+  =============================== */
+
+  const topButtons = $$(".top-actions .icon-btn");
+
+  topButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      const title = button.title.toLowerCase();
+
+      if (title === "reels") {
+        openReels();
+      }
+
+      if (title === "guardados") {
+        showSaved();
+      }
+
+      if (title === "inicio") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      if (title === "enviar") {
+        $("#chatMessage")?.focus();
+        $("#messages")?.scrollIntoView({ behavior: "smooth" });
+      }
+
+      if (title === "notificaciones") {
+        notify("CENTRO DE NOTIFICACIONES SKYNET");
+      }
+
+      topButtons.forEach(item => item.classList.remove("active"));
+      button.classList.add("active");
+    });
+  });
+
+  /* ===============================
+     GUARDADOS
+  =============================== */
+
+  function showSaved() {
+    const savedPosts = state.saved
+      .map(id => document.querySelector(
+        `.post[data-post-id="${CSS.escape(id)}"]`
+      ))
+      .filter(Boolean);
+
+    if (!savedPosts.length) {
+      notify("NO HAY PUBLICACIONES GUARDADAS");
+      return;
+    }
+
+    const originalPositions = savedPosts.map(post => ({
+      post,
+      parent: post.parentNode,
+      next: post.nextSibling
+    }));
+
+    const modal = document.createElement("div");
+
+    modal.className = "cyber-saved-modal";
+
+    modal.innerHTML = `
+      <div class="saved-window">
+        <header>
+          <strong>PUBLICACIONES GUARDADAS</strong>
+          <button type="button">✕</button>
+        </header>
+        <div class="saved-content"></div>
+      </div>
+    `;
+
+    const content = $(".saved-content", modal);
+
+    savedPosts.forEach(post => {
+      content.appendChild(post.cloneNode(true));
+    });
+
+    $("button", modal).addEventListener("click", () => {
+      modal.remove();
+    });
+
+    document.body.appendChild(modal);
+  }
+
+  /* ===============================
+     BUSCADOR
+  =============================== */
+
+  $("#searchInput")?.addEventListener("input", event => {
     const query = event.target.value.toLowerCase().trim();
 
-    document.querySelectorAll("#feed .post").forEach(post => {
-        const content = post.dataset.search ||
-            post.textContent.toLowerCase();
+    $$(".post").forEach(post => {
+      const content = (
+        post.dataset.search || post.textContent
+      ).toLowerCase();
 
-        post.style.display = content.toLowerCase().includes(query)
-            ? ""
-            : "none";
+      post.style.display = content.includes(query) ? "" : "none";
     });
-});
+  });
 
-/* ==========================================
-   STORIES
-   ========================================== */
+  /* ===============================
+     FACTORY CHAT
+  =============================== */
 
-$("#addStory")?.addEventListener("click", () => {
-    showToast("Historias: siguiente módulo de UNDERCHAOS.");
-});
+  $("#chatForm")?.addEventListener("submit", event => {
+    event.preventDefault();
 
-/* ==========================================
-   INITIALIZATION
-   ========================================== */
+    const input = $("#chatMessage");
+    const text = input?.value.trim();
 
-loadState();
+    if (!text) return;
 
-if (posts.length === 0) {
-    initializeDemoPosts();
+    const message = {
+      text,
+      time: new Date().toLocaleTimeString("es-CL", {
+        hour: "2-digit",
+        minute: "2-digit"
+      })
+    };
+
+    state.messages.push(message);
+
+    const person = document.createElement("div");
+
+    person.className = "chat-person";
+
+    person.innerHTML = `
+      <div class="avatar avatar-red">DC</div>
+      <div>
+        <b>darkcode_2050</b>
+        <small>${escapeHTML(text)}</small>
+      </div>
+      <time>${message.time}</time>
+    `;
+
+    $("#chatForm").before(person);
+
+    input.value = "";
+
     saveState();
-}
 
-renderAll();
-updateProfile();
+    notify("MENSAJE ENVIADO");
+  });
 
-console.log("UNDERCHAOS SOCIAL ENGINE ONLINE");
+  /* ===============================
+     ATAJO DE BÚSQUEDA
+  =============================== */
+
+  document.addEventListener("keydown", event => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      event.preventDefault();
+      $("#searchInput")?.focus();
+    }
+
+    if (event.key === "Escape") {
+      closeReels();
+    }
+  });
+
+  /* ===============================
+     INICIAR SKYNET
+  =============================== */
+
+  loadState();
+  initializePosts();
+  createUploadControls();
+
+  console.log(
+    "%c CYBERREELS // SKYNET SOCIAL ONLINE ",
+    "background:#111;color:#00f5ff;padding:8px;font-weight:bold"
+  );
+
+})();
